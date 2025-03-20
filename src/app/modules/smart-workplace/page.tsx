@@ -14,6 +14,20 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Chart from 'chart.js/auto';
+import { Bar, Line, Pie, Radar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  RadialLinearScale,
+  ArcElement
+} from 'chart.js';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -137,7 +151,7 @@ const departmentGroups = {
 };
 
 interface ChartData {
-  type: 'line' | 'bar' | 'pie';
+  type: 'line' | 'bar' | 'pie' | 'radar';
   data: {
     labels: string[];
     datasets: Array<{
@@ -148,6 +162,146 @@ interface ChartData {
       fill?: boolean;
     }>;
   };
+}
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  RadialLinearScale,
+  ArcElement
+);
+
+function ChartComponent({ chartData }: { chartData: ChartData }) {
+  if (!chartData) return null;
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      }
+    }
+  };
+
+  switch (chartData.type) {
+    case 'line':
+      return <Line data={chartData.data} options={options} />;
+    case 'bar':
+      return <Bar data={chartData.data} options={options} />;
+    case 'pie':
+      return <Pie data={chartData.data} options={options} />;
+    case 'radar':
+      return <Radar data={chartData.data} options={options} />;
+    default:
+      return null;
+  }
+}
+
+function MessageDisplay({ message }: { message: Message }) {
+  const isUser = message.role === 'user';
+
+  return (
+    <div
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
+    >
+      <div
+        className={`max-w-[80%] rounded-lg p-4 ${
+          isUser ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'
+        }`}
+      >
+        {!isUser && (
+          <div className="flex items-center mb-2">
+            <span className="text-2xl mr-2">🤖</span>
+            <span className="text-sm text-gray-300">AI 助理</span>
+          </div>
+        )}
+        <div className="mb-2 whitespace-pre-wrap">{message.content}</div>
+        
+        {message.type === 'chart' && message.metadata?.chartData && (
+          <div className="mt-4 bg-white p-4 rounded-lg" style={{ height: '200px' }}>
+            <ChartComponent chartData={message.metadata.chartData} />
+          </div>
+        )}
+
+        {message.type === 'code' && message.metadata?.codeSnippet && (
+          <div className="mt-4 bg-gray-800 p-4 rounded-lg">
+            <pre className="text-sm overflow-x-auto">
+              <code>{message.metadata.codeSnippet}</code>
+            </pre>
+          </div>
+        )}
+
+        {message.type === 'table' && message.metadata?.tableData && (
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full bg-gray-800 rounded-lg">
+              {/* 表格內容渲染 */}
+            </table>
+          </div>
+        )}
+
+        <div className="text-xs text-gray-400 mt-2">
+          {message.timestamp}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DepartmentSection({ department, messages, onSendMessage }: { 
+  department: string; 
+  messages: Message[];
+  onSendMessage: (message: string) => Promise<void>;
+}) {
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    setLoading(true);
+    try {
+      await onSendMessage(input);
+      setInput('');
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 p-4">
+      <div className="mb-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+        {messages.map((msg, index) => (
+          <MessageDisplay key={index} message={msg} />
+        ))}
+      </div>
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          className="flex-1 p-2 bg-gray-700 text-white rounded"
+          placeholder="輸入您的問題..."
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? '處理中...' : '發送'}
+        </button>
+      </form>
+    </div>
+  );
 }
 
 export default function SmartWorkplacePage() {
@@ -236,7 +390,6 @@ export default function SmartWorkplacePage() {
   // 處理圖表數據
   const handleChartData = (metadata: any) => {
     if (!metadata?.chartData) return;
-    
     createChart(metadata.chartData);
   };
 
@@ -283,8 +436,8 @@ export default function SmartWorkplacePage() {
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      // 如果是總經理室的回應且包含圖表數據，則更新圖表
-      if (selectedDepartment === 'executive' && data.metadata?.chartData) {
+      // 如果回應包含圖表數據，則更新圖表（對所有部門）
+      if (data.metadata?.chartData) {
         handleChartData(data.metadata);
       }
     } catch (error: any) {
@@ -292,57 +445,6 @@ export default function SmartWorkplacePage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const renderMessage = (message: Message) => {
-    const isUser = message.role === 'user';
-
-    return (
-      <div
-        className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
-      >
-        <div
-          className={`max-w-[80%] rounded-lg p-4 ${
-            isUser ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'
-          }`}
-        >
-          {!isUser && (
-            <div className="flex items-center mb-2">
-              <span className="text-2xl mr-2">🤖</span>
-              <span className="text-sm text-gray-300">AI 助理</span>
-            </div>
-          )}
-          <div className="mb-2 whitespace-pre-wrap">{message.content}</div>
-          
-          {message.type === 'chart' && message.metadata?.chartData && (
-            <div className="mt-4 bg-gray-800 p-4 rounded-lg">
-              {/* 這裡可以根據 chartData 渲染對應的圖表 */}
-              <div className="text-sm text-gray-400">圖表數據已生成</div>
-            </div>
-          )}
-
-          {message.type === 'code' && message.metadata?.codeSnippet && (
-            <div className="mt-4 bg-gray-800 p-4 rounded-lg">
-              <pre className="text-sm overflow-x-auto">
-                <code>{message.metadata.codeSnippet}</code>
-              </pre>
-            </div>
-          )}
-
-          {message.type === 'table' && message.metadata?.tableData && (
-            <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full bg-gray-800 rounded-lg">
-                {/* 表格內容渲染 */}
-              </table>
-            </div>
-          )}
-
-          <div className="text-xs text-gray-400 mt-2">
-            {message.timestamp}
-          </div>
-        </div>
-      </div>
-    );
   };
 
   // 過濾當前部門的訊息
@@ -353,6 +455,11 @@ export default function SmartWorkplacePage() {
   const currentModule = departmentModules.find(
     module => module.id === selectedDepartment
   );
+
+  // 渲染訊息
+  function renderMessage(message: Message) {
+    return <MessageDisplay message={message} />;
+  }
 
   // 清理圖表
   useEffect(() => {
@@ -409,18 +516,16 @@ export default function SmartWorkplacePage() {
             })}
           </div>
 
-          {/* 圖表區域 - 只在總經理室時顯示 */}
-          {selectedDepartment === 'executive' && (
-            <div className="mt-6">
-              <Card className="bg-gray-800 p-4">
-                <canvas 
-                  ref={chartRef} 
-                  className="w-full"
-                  style={{ height: '300px' }}
-                ></canvas>
-              </Card>
-            </div>
-          )}
+          {/* 圖表區域 - 所有部門都顯示 */}
+          <div className="mt-4">
+            <Card className="bg-gray-800 p-4">
+              <canvas 
+                ref={chartRef} 
+                className="w-full"
+                style={{ height: '300px' }}
+              ></canvas>
+            </Card>
+          </div>
         </div>
 
         {/* 右側對話區域 */}

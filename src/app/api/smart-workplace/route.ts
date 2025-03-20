@@ -1,21 +1,49 @@
 import { NextResponse } from 'next/server';
 
+interface ChartDataset {
+  label: string;
+  data: number[];
+  backgroundColor?: string | string[];
+  borderColor?: string;
+  fill?: boolean;
+  pointBackgroundColor?: string;
+  pointBorderColor?: string;
+}
+
 interface ChartData {
-  type: 'line' | 'bar' | 'pie';
+  type: 'line' | 'bar' | 'pie' | 'radar';
   data: {
     labels: string[];
-    datasets: Array<{
-      label: string;
-      data: number[];
-      backgroundColor?: string[];
-      borderColor?: string;
-      fill?: boolean;
-    }>;
+    datasets: ChartDataset[];
+  };
+}
+
+interface Candidate {
+  id: string;
+  match: number;
+  skills: string[];
+  experience: number;
+}
+
+interface DepartmentData {
+  turnoverRisk: Record<string, {
+    risk: string;
+    percentage: number;
+    factors: string[];
+  }>;
+  recruitmentMatch: Record<string, Candidate[]>;
+  companyPolicies: {
+    attendance: {
+      workHours: string;
+      flexibleHours: boolean;
+      remoteWork: string;
+      overtime: string;
+    };
   };
 }
 
 // 模擬 HR 數據
-const hrData = {
+const hrData: DepartmentData = {
   turnoverRisk: {
     engineering: { risk: 'high', percentage: 15, factors: ['加班時數過高', '薪資競爭力不足'] },
     marketing: { risk: 'low', percentage: 5, factors: ['團隊氛圍佳', '工作滿意度高'] },
@@ -239,6 +267,197 @@ function generateRiskAssessmentChart(): ChartData {
   };
 }
 
+// 生成稅務優化圖表
+function generateTaxOptimizationChart(): ChartData {
+  return {
+    type: 'bar',
+    data: {
+      labels: ['研發投資', '設備折舊', '人才培訓', '綠能投資', '國際營運'],
+      datasets: [{
+        label: '預估節稅效益（萬元）',
+        data: [150, 80, 60, 100, 120],
+        backgroundColor: [
+          '#4CAF50',
+          '#2196F3',
+          '#FFC107',
+          '#9C27B0',
+          '#FF5722'
+        ]
+      }]
+    }
+  };
+}
+
+// 生成財務健康度圖表
+function generateFinanceHealthChart(): ChartData {
+  return {
+    type: 'line',
+    data: {
+      labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+      datasets: [
+        {
+          label: '營收成長率',
+          data: [8, 10, 12, 11, 13, 12],
+          borderColor: '#4CAF50',
+          fill: false
+        },
+        {
+          label: '利潤率',
+          data: [6, 7, 8, 7.5, 8.5, 8],
+          borderColor: '#2196F3',
+          fill: false
+        }
+      ]
+    }
+  };
+}
+
+// 生成應收帳款圖表
+function generateReceivablesChart(): ChartData {
+  return {
+    type: 'pie',
+    data: {
+      labels: ['30天內', '31-60天', '61-90天', '90天以上'],
+      datasets: [{
+        label: '應收帳款帳齡分布',
+        data: [65, 20, 10, 5],
+        backgroundColor: [
+          '#4CAF50',  // 綠色 - 健康
+          '#FFC107',  // 黃色 - 注意
+          '#FF9800',  // 橙色 - 警告
+          '#F44336'   // 紅色 - 危險
+        ]
+      }]
+    }
+  };
+}
+
+// 生成合約風險圖表
+function generateContractRiskChart(): ChartData {
+  return {
+    type: 'radar',
+    data: {
+      labels: ['付款條件', '責任歸屬', '保密條款', '智財權條款', '違約處理', '爭議解決'],
+      datasets: [{
+        label: '風險評估分數',
+        data: [85, 70, 60, 75, 80, 65],
+        backgroundColor: 'rgba(33, 150, 243, 0.2)',
+        borderColor: '#2196F3',
+        pointBackgroundColor: '#2196F3'
+      }]
+    }
+  };
+}
+
+// 生成法規遵循圖表
+function generateComplianceChart(): ChartData {
+  return {
+    type: 'bar',
+    data: {
+      labels: ['個資保護', '資訊安全', '勞動法規', '環保法規', '公司治理'],
+      datasets: [{
+        label: '法規遵循程度',
+        data: [85, 75, 90, 95, 88],
+        backgroundColor: [
+          '#4CAF50',
+          '#FFC107',
+          '#4CAF50',
+          '#4CAF50',
+          '#2196F3'
+        ]
+      }]
+    }
+  };
+}
+
+// 生成離職風險圖表
+function generateTurnoverRiskChart(): ChartData {
+  return {
+    type: 'bar',
+    data: {
+      labels: ['工程部', '行銷部', '業務部'],
+      datasets: [{
+        label: '離職風險指數 (%)',
+        data: [15, 5, 8],
+        backgroundColor: [
+          '#FF5252',  // 高風險 - 紅色
+          '#4CAF50',  // 低風險 - 綠色
+          '#FFC107'   // 中風險 - 黃色
+        ]
+      }]
+    }
+  };
+}
+
+// 生成人才匹配度圖表
+function generateRecruitmentMatchChart(): ChartData {
+  return {
+    type: 'radar',
+    data: {
+      labels: ['技術能力', '工作經驗', '團隊協作', '溝通能力', '學習意願'],
+      datasets: [
+        {
+          label: '候選人 C001',
+          data: [95, 90, 85, 88, 92],
+          backgroundColor: 'rgba(33, 150, 243, 0.2)',
+          borderColor: '#2196F3'
+        },
+        {
+          label: '候選人 C002',
+          data: [88, 85, 90, 92, 86],
+          backgroundColor: 'rgba(76, 175, 80, 0.2)',
+          borderColor: '#4CAF50'
+        }
+      ]
+    }
+  };
+}
+
+// 生成程式碼質量圖表
+function generateCodeQualityChart(): ChartData {
+  return {
+    type: 'bar',
+    data: {
+      labels: ['測試覆蓋率', '程式碼重複率', '維護性指標', '安全性指標', '效能指標'],
+      datasets: [{
+        label: '程式碼品質評分',
+        data: [85, 92, 78, 88, 85],
+        backgroundColor: [
+          '#4CAF50',  // 綠色
+          '#2196F3',  // 藍色
+          '#FFC107',  // 黃色
+          '#9C27B0',  // 紫色
+          '#FF5722'   // 橙色
+        ]
+      }]
+    }
+  };
+}
+
+// 生成資料庫效能圖表
+function generateDatabasePerformanceChart(): ChartData {
+  return {
+    type: 'line',
+    data: {
+      labels: ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00'],
+      datasets: [
+        {
+          label: '響應時間 (ms)',
+          data: [250, 280, 310, 290, 260, 240],
+          borderColor: '#2196F3',
+          fill: false
+        },
+        {
+          label: '查詢數量',
+          data: [1000, 1200, 1500, 1300, 1100, 1000],
+          borderColor: '#4CAF50',
+          fill: false
+        }
+      ]
+    }
+  };
+}
+
 function generateChartData(data: any, type: string) {
   // 根據不同類型生成對應的圖表數據
   switch (type) {
@@ -264,20 +483,36 @@ function generateChartData(data: any, type: string) {
   }
 }
 
-function formatHRResponse(message: string, data: any) {
+function formatHRResponse(message: string, data: DepartmentData) {
   if (message.includes('離職風險')) {
     const riskData = data.turnoverRisk;
     return {
       message: `近三個月員工離職風險分析：\n\n${
         Object.entries(riskData)
-          .map(([dept, info]: [string, any]) => 
+          .map(([dept, info]) => 
             `${dept}部門：\n風險等級：${info.risk}\n離職風險指數：${info.percentage}%\n主要因素：${info.factors.join('、')}`
           )
           .join('\n\n')
-      }`,
+      }
+
+風險因應對策：
+1. 工程部：
+   - 檢討加班制度
+   - 調整薪資結構
+   - 優化工作環境
+
+2. 業務部：
+   - 改善績效制度
+   - 提供銷售支援
+   - 強化團隊激勵
+
+3. 行銷部：
+   - 維持良好氛圍
+   - 提供成長機會
+   - 定期團隊活動`,
       type: 'chart',
       metadata: {
-        chartData: generateChartData(data, 'turnover')
+        chartData: generateTurnoverRiskChart()
       }
     };
   }
@@ -289,34 +524,70 @@ function formatHRResponse(message: string, data: any) {
         candidates
           .map(c => `候選人 ${c.id}\n匹配度：${c.match}%\n技能：${c.skills.join(', ')}\n相關經驗：${c.experience} 年`)
           .join('\n\n')
-      }`,
-      type: 'table',
+      }
+
+人才評估維度：
+1. 技術能力：前端框架熟練度、TypeScript 掌握程度
+2. 工作經驗：專案經驗、團隊合作經歷
+3. 團隊協作：溝通能力、團隊精神
+4. 學習意願：持續學習、技術探索
+
+建議行動：
+• 安排技術主管面試
+• 進行實作測試
+• 評估團隊契合度`,
+      type: 'chart',
       metadata: {
-        tableData: candidates
+        chartData: generateRecruitmentMatchChart()
       }
     };
   }
 
-  if (message.includes('差勤規定')) {
+  if (message.includes('差勤') || message.includes('規定')) {
     const policy = data.companyPolicies.attendance;
     return {
       message: `公司差勤規定：\n
 工作時間：${policy.workHours}
 彈性工時：${policy.flexibleHours ? '允許' : '不允許'}
 遠端工作：${policy.remoteWork}
-加班規定：${policy.overtime}`,
+加班規定：${policy.overtime}
+
+其他重要規定：
+1. 彈性上下班：
+   - 核心工作時間：10:00-16:00
+   - 彈性時段：08:00-10:00 / 16:00-19:00
+
+2. 遠端工作政策：
+   - 每週可遠端工作 2 天
+   - 需提前一週申請
+   - 主管可視專案需求調整
+
+3. 加班規定：
+   - 需事先申請並核准
+   - 可選擇補休或加班費
+   - 30 天內必須完成補休
+
+4. 特殊假別：
+   - 生日假 1 天
+   - 志工假 2 天
+   - 進修假依需求申請`,
       type: 'text'
     };
   }
 
   return {
-    message: '抱歉，我無法理解您的問題。請您重新描述，或選擇其他問題。',
+    message: `人力資源智能助手已啟動，您可以查詢：
+1. 員工離職風險分析
+2. 人才招募配對
+3. 公司差勤規定
+
+請選擇您想了解的內容。`,
     type: 'text'
   };
 }
 
 function formatITResponse(message: string, data: any) {
-  if (message.includes('程式碼質量')) {
+  if (message.includes('程式碼') || message.includes('代碼')) {
     const quality = data.codeQuality;
     return {
       message: `系統程式碼質量分析：\n
@@ -328,18 +599,27 @@ Bug 分布：
 技術債：${quality.techDebt}
 
 改進建議：
-${quality.recommendations.map((r: string) => `• ${r}`).join('\n')}`,
+${quality.recommendations.map((r: string) => `• ${r}`).join('\n')}
+
+質量指標評分：
+• 測試覆蓋率：85分 - 良好
+• 程式碼重複率：92分 - 優秀
+• 維護性指標：78分 - 待改進
+• 安全性指標：88分 - 良好
+• 效能指標：85分 - 良好
+
+優先改進項目：
+1. 提高單元測試覆蓋率
+2. 重構複雜度過高的模組
+3. 更新過時的依賴套件`,
       type: 'chart',
       metadata: {
-        chartData: {
-          bugs: quality.bugs,
-          coverage: quality.coverage
-        }
+        chartData: generateCodeQualityChart()
       }
     };
   }
 
-  if (message.includes('資料庫查詢')) {
+  if (message.includes('資料庫') || message.includes('查詢')) {
     const perf = data.performance;
     return {
       message: `資料庫查詢效能分析：\n
@@ -349,53 +629,175 @@ ${quality.recommendations.map((r: string) => `• ${r}`).join('\n')}`,
 - 已優化查詢：${perf.databaseQueries.optimized}
 - 總查詢數：${perf.databaseQueries.total}
 
-建議：優先優化 ${perf.databaseQueries.slow} 個慢查詢`,
-      type: 'table',
+效能監控：
+• 響應時間趨勢：穩定，平均 250ms
+• 查詢量變化：正常波動範圍內
+• 系統負載：低於 50%
+
+優化建議：
+1. 優化慢查詢：
+   - 新增適當索引
+   - 重寫複雜查詢
+   - 實施查詢快取
+
+2. 資料庫維護：
+   - 定期更新統計資訊
+   - 最佳化資料表
+   - 清理過期資料
+
+3. 監控強化：
+   - 設置效能警報
+   - 自動化效能報告
+   - 建立效能基準`,
+      type: 'chart',
       metadata: {
-        tableData: perf.databaseQueries
+        chartData: generateDatabasePerformanceChart()
       }
     };
   }
 
   return {
-    message: '抱歉，我無法理解您的問題。請您重新描述，或選擇其他問題。',
+    message: `IT 智能開發助手已啟動，您可以查詢：
+1. 程式碼質量分析
+2. 資料庫查詢效能
+
+請選擇您想了解的內容。`,
     type: 'text'
   };
 }
 
 function formatFinanceResponse(message: string, data: any) {
-  if (message.includes('稅務')) {
-    const tax = data.taxAnalysis;
+  if (message.includes('財務健康')) {
     return {
-      message: `稅務優化分析：\n
-當前稅率：${tax.currentRate}
-優化空間：${tax.optimization.potential}
+      message: `財務健康報告：
 
-優化建議：
-${tax.optimization.suggestions.map((s: string) => `• ${s}`).join('\n')}`,
-      type: 'text'
+營收狀況：15,000,000 (成長 12%)
+利潤表現：3,000,000 (成長 8%)
+現金流狀況：良好
+未來展望：穩定成長
+
+關鍵指標分析：
+• 營收持續穩定成長
+• 利潤率維持在健康水準
+• 現金流充裕，可支持營運擴展
+• 財務結構穩健，負債比率適中
+
+詳細分析：
+1. 營收成長動能：
+   - 主要產品線銷售增長
+   - 新市場開拓成效顯著
+   - 客戶群持續擴大
+
+2. 成本控制：
+   - 營運效率提升
+   - 供應鏈優化
+   - 自動化投資回報良好
+
+3. 投資報酬：
+   - 研發投資效益顯現
+   - 設備更新提升產能
+   - 人才投資促進創新`,
+      type: 'chart',
+      metadata: {
+        chartData: generateFinanceHealthChart()
+      }
+    };
+  }
+
+  if (message.includes('稅務優化')) {
+    return {
+      message: `稅務優化分析：
+
+可行的節稅方案：
+
+1. 研發投資抵減：
+   • 預估效益：150萬
+   • 適用項目：新產品研發
+   • 申請條件：已具備
+
+2. 設備折舊：
+   • 預估效益：80萬
+   • 加速折舊方案
+   • 符合綠能規範
+
+3. 人才培訓投資：
+   • 預估效益：60萬
+   • 產業人才投資方案
+   • 政府補助計畫
+
+4. 綠能投資抵減：
+   • 預估效益：100萬
+   • 太陽能設備
+   • 節能改善方案
+
+5. 國際營運規劃：
+   • 預估效益：120萬
+   • 跨國稅務最適化
+   • 移轉訂價策略
+
+總體效益評估：
+• 年度預估節稅：510萬
+• 投資報酬率：25%
+• 實施難度：中等
+• 法規符合度：100%`,
+      type: 'chart',
+      metadata: {
+        chartData: generateTaxOptimizationChart()
+      }
     };
   }
 
   if (message.includes('應收帳款')) {
-    const ar = data.accountsReceivable;
     return {
-      message: `應收帳款風險分析：\n
-總額：${ar.total.toLocaleString()} 元
+      message: `應收帳款風險分析：
 
-帳齡分析：
-${Object.entries(ar.aging)
-  .map(([age, amount]) => `${age}：${(amount as number).toLocaleString()} 元`)
-  .join('\n')}`,
+帳齡分布：
+• 30天內：65%
+• 31-60天：20%
+• 61-90天：10%
+• 90天以上：5%
+
+風險評估：
+1. 低風險 (30天內)：
+   - 金額：9,750,000
+   - 客戶數：42
+   - 收回機率：99%
+
+2. 中低風險 (31-60天)：
+   - 金額：3,000,000
+   - 客戶數：15
+   - 收回機率：95%
+
+3. 中風險 (61-90天)：
+   - 金額：1,500,000
+   - 客戶數：8
+   - 收回機率：85%
+
+4. 高風險 (90天以上)：
+   - 金額：750,000
+   - 客戶數：5
+   - 收回機率：60%
+
+建議行動方案：
+• 加強催收90天以上帳款
+• 檢討信用條件政策
+• 建立預警機制
+• 考慮保險或保理方案`,
       type: 'chart',
       metadata: {
-        chartData: generateChartData(data, 'finance')
+        chartData: generateReceivablesChart()
       }
     };
   }
 
   return {
-    message: '抱歉，我無法理解您的問題。請您重新描述，或選擇其他問題。',
+    message: `財務智能助手已啟動，您可以查詢：
+1. 分析本季度的稅務優化空間
+2. 生成本月的財務健康報告
+3. 評估主要客戶的應收帳款風險
+4. 預測下季度的現金流狀況
+
+請選擇您想了解的內容。`,
     type: 'text'
   };
 }
@@ -411,8 +813,19 @@ function formatLegalResponse(message: string, data: any) {
 ${review.keyIssues.map((i: string) => `• ${i}`).join('\n')}
 
 改善建議：
-${review.suggestions.map((s: string) => `• ${s}`).join('\n')}`,
-      type: 'text'
+${review.suggestions.map((s: string) => `• ${s}`).join('\n')}
+
+風險評分：
+• 付款條件：85分 - 需要明確時程
+• 責任歸屬：70分 - 需要釐清範圍
+• 保密條款：60分 - 建議強化
+• 智財權條款：75分 - 可再完善
+• 違約處理：80分 - 基本完整
+• 爭議解決：65分 - 需要補充`,
+      type: 'chart',
+      metadata: {
+        chartData: generateContractRiskChart()
+      }
     };
   }
 
@@ -422,14 +835,33 @@ ${review.suggestions.map((s: string) => `• ${s}`).join('\n')}`,
       message: `法規遵循檢查結果：\n
 整體狀態：${compliance.status}
 
+各項法規遵循評分：
+• 個資保護：85分 - 待優化項目：資料存取控制
+• 資訊安全：75分 - 待優化項目：ISO 27001認證更新
+• 勞動法規：90分 - 符合法規要求
+• 環保法規：95分 - 超越法規標準
+• 公司治理：88分 - 持續優化中
+
 待改善項目：
-${compliance.gaps.map((g: string) => `• ${g}`).join('\n')}`,
-      type: 'text'
+${compliance.gaps.map((g: string) => `• ${g}`).join('\n')}
+
+改善時程：
+1. 短期（1個月內）：更新資料存取權限
+2. 中期（3個月內）：完成 ISO 27001 認證
+3. 長期（6個月內）：建立自動化法遵系統`,
+      type: 'chart',
+      metadata: {
+        chartData: generateComplianceChart()
+      }
     };
   }
 
   return {
-    message: '抱歉，我無法理解您的問題。請您重新描述，或選擇其他問題。',
+    message: `法務諮詢助手已啟動，您可以查詢：
+1. 合約風險評估
+2. 法規遵循檢查
+
+請選擇您想了解的內容。`,
     type: 'text'
   };
 }
