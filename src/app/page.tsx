@@ -43,6 +43,12 @@ const modules = [
     href: '/modules/tools',
     color: 'bg-pink-500',
   },
+  {
+    title: '工業 AI 應用',
+    description: '展示 AI 在製造業的實際應用，包括品質檢測、預測性維護和生產排程',
+    href: '/modules/industry',
+    color: 'bg-orange-500',
+  },
 ];
 
 export default function Home() {

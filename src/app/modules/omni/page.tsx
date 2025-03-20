@@ -3,32 +3,60 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 
+type MediaType = 'image' | 'audio' | 'video' | null;
+
+interface MediaState {
+  type: MediaType;
+  data: string | null;
+  fileName?: string;
+}
+
 export default function OmniPage() {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<MediaState>({ type: null, data: null });
+  const [processingStatus, setProcessingStatus] = useState<string>('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      const type = file.type.startsWith('image/') ? 'image' :
+                  file.type.startsWith('audio/') ? 'audio' :
+                  file.type.startsWith('video/') ? 'video' : null;
+      
+      setSelectedMedia({ 
+        type, 
+        data: result,
+        fileName: file.name 
+      });
+
+      if (type === 'audio') {
+        setProcessingStatus('音訊檔案已選擇，準備進行處理...');
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!textareaRef.current?.value && !selectedImage) return;
+    if (!textareaRef.current?.value && !selectedMedia.data) return;
 
-    const question = textareaRef.current?.value || '請分析這張圖片';
+    const question = textareaRef.current?.value || '請分析這個媒體檔案';
     setIsLoading(true);
 
     try {
+      if (selectedMedia.type === 'audio') {
+        setProcessingStatus('正在處理音訊檔案，這可能需要一些時間...');
+      }
+
       const response = await fetch('/api/omni', {
         method: 'POST',
         headers: {
@@ -36,7 +64,7 @@ export default function OmniPage() {
         },
         body: JSON.stringify({
           question,
-          image: selectedImage,
+          media: selectedMedia,
         }),
       });
 
@@ -55,7 +83,8 @@ export default function OmniPage() {
       if (textareaRef.current) {
         textareaRef.current.value = '';
       }
-      setSelectedImage(null);
+      setSelectedMedia({ type: null, data: null });
+      setProcessingStatus('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -67,6 +96,7 @@ export default function OmniPage() {
       ]);
     } finally {
       setIsLoading(false);
+      setProcessingStatus('');
     }
   };
 
@@ -76,7 +106,8 @@ export default function OmniPage() {
         Omni 多模態對話模組
       </h1>
       <p className="mb-4 text-gray-300">
-        這個模組可以同時處理文字和圖片輸入，讓您能夠上傳圖片並詢問相關問題。
+        這個模組可以同時處理文字、圖片、音訊和影片輸入，讓您能夠上傳多媒體檔案並詢問相關問題。
+        支援的格式：圖片 (JPG, PNG)、音訊 (WAV, MP3)、影片 (MP4)。
       </p>
 
       <div className="mb-4 space-y-4">
@@ -94,7 +125,7 @@ export default function OmniPage() {
             <div className="text-sm opacity-90 mb-1 text-gray-200">
               {msg.role === 'user' ? '您' : msg.role === 'error' ? '錯誤' : 'AI 助手'}
             </div>
-            <div>{msg.content}</div>
+            <div className="whitespace-pre-wrap">{msg.content}</div>
           </div>
         ))}
       </div>
@@ -103,21 +134,53 @@ export default function OmniPage() {
         <div className="flex gap-4">
           <input
             type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
+            accept="image/*,audio/*,video/*"
+            onChange={handleMediaSelect}
             ref={fileInputRef}
             className="block w-full text-gray-300 bg-gray-800 border border-gray-700 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-white file:bg-blue-600 hover:file:bg-blue-700"
           />
         </div>
 
-        {selectedImage && (
-          <div className="relative w-64 h-64">
-            <Image
-              src={selectedImage}
-              alt="Selected"
-              fill
-              className="object-contain"
-            />
+        {processingStatus && (
+          <div className="p-4 rounded-lg bg-blue-500 bg-opacity-20 text-blue-300">
+            {processingStatus}
+          </div>
+        )}
+
+        {selectedMedia.data && (
+          <div className="relative w-full max-w-2xl mx-auto">
+            {selectedMedia.type === 'image' && (
+              <div className="relative w-64 h-64">
+                <Image
+                  src={selectedMedia.data}
+                  alt="Selected"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            )}
+            {selectedMedia.type === 'audio' && (
+              <div className="space-y-2">
+                <div className="text-gray-300">已選擇音訊檔案：{selectedMedia.fileName}</div>
+                <audio
+                  ref={audioRef}
+                  src={selectedMedia.data}
+                  controls
+                  className="w-full"
+                />
+              </div>
+            )}
+            {selectedMedia.type === 'video' && (
+              <div className="space-y-2">
+                <div className="text-gray-300">已選擇影片檔案：{selectedMedia.fileName}</div>
+                <video
+                  ref={videoRef}
+                  src={selectedMedia.data}
+                  controls
+                  className="w-full"
+                />
+              </div>
+            )}
           </div>
         )}
 
