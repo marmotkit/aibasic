@@ -20,6 +20,36 @@ ${format ? `\n格式：${format}` : ''}`;
   async createPlan(goal: string, steps: number = 3) {
     return `行動計劃 - ${goal}：
 ${Array.from({ length: steps }, (_, i) => `${i + 1}. 步驟 ${i + 1}...`).join('\n')}`;
+  },
+
+  async scheduleTask(task: string, date: string, duration: string) {
+    const response = await fetch('/api/agent/schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task, date, duration })
+    });
+    const data = await response.json();
+    return data.schedule;
+  },
+
+  async trackTasks(tasks: any[], action: string) {
+    const response = await fetch('/api/agent/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks, action })
+    });
+    const data = await response.json();
+    return data.analysis;
+  },
+
+  async summarizeDocument(content: string, type: string) {
+    const response = await fetch('/api/agent/summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, type })
+    });
+    const data = await response.json();
+    return data.summary;
   }
 };
 
@@ -55,6 +85,9 @@ export async function POST(request: Request) {
 1. searchWeb: 在網絡上搜索信息
 2. analyzeData: 分析數據並生成報告
 3. createPlan: 創建行動計劃
+4. scheduleTask: 安排任務日程
+5. trackTasks: 追蹤任務進度
+6. summarizeDocument: 生成文件摘要
 
 請分析用戶的問題，判斷是否需要使用工具。如果需要，請說明你要使用什麼工具和原因。
 請用繁體中文回答。

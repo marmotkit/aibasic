@@ -37,14 +37,20 @@ const modules = [
     href: '/modules/agent',
     color: 'bg-indigo-500',
   },
+  {
+    title: '智能工具集',
+    description: '提供日程安排、任務追蹤和文件摘要等實用工具',
+    href: '/modules/tools',
+    color: 'bg-pink-500',
+  },
 ];
 
 export default function Home() {
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8">AI 技術演進學習之旅</h1>
-        <p className="text-xl text-center mb-12">
+        <h1 className="text-4xl font-bold text-center mb-8 text-white">AI 技術演進學習之旅</h1>
+        <p className="text-xl text-center mb-12 text-gray-300">
           透過實際操作體驗 AI 技術的發展歷程，從基礎對話到智能代理
         </p>
         
