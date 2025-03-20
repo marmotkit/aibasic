@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 智慧場域 AI 中心
 
-## Getting Started
+這是一個基於 Next.js 和 AI 技術打造的企業智慧場域系統，為不同部門提供專業的 AI 輔助功能。
 
-First, run the development server:
+## 系統特色
 
+- 🎯 多部門支援：整合人資、IT、財務、法務和總經理辦公室等多個部門
+- 🤖 AI 智能對話：針對各部門特性提供專業的 AI 對話服務
+- 📊 即時數據視覺化：自動生成互動式圖表，支援多種圖表類型
+- 🎨 現代化介面：採用 Radix UI 和 Tailwind CSS 打造的精美介面
+- 🔄 即時互動：快速回應並即時更新圖表顯示
+
+## 功能模組
+
+### 人力資源智能助手 👥
+
+- 離職風險分析：預測員工離職風險，提供留任建議
+- 招募職能配對：智能匹配職位要求與人才技能
+- 企業知識服務：GPT 驅動的企業知識庫問答系統
+
+### IT 智能開發助手 💻
+
+- 智能代碼生成：基於需求自動生成程式碼
+- 代碼優化建議：提供性能與品質改進建議
+- 程式除錯助手：智能診斷並解決程式問題
+
+### 財務智能分析師 📊
+
+- 稅務分析：智能稅務規劃與風險評估
+- 財報分析：自動化財務報表分析與洞察
+- 應收應付分析：現金流預測與風險預警
+
+### 法務智能顧問 ⚖️
+
+- 合約智能審查：自動檢查合約條款與風險
+- 法規遵循檢查：確保業務符合法規要求
+- 法務風險預警：識別潛在法務風險
+
+### 總經理數據中心 📈
+
+- 營運數據儀表板：即時監控關鍵營運指標
+- 決策支援系統：AI 輔助的決策建議
+- 風險預警系統：全面性風險監控與預警
+
+## 技術特點
+
+### 前端技術
+
+- Next.js 14：採用 App Router 架構
+- TypeScript：確保代碼品質和型別安全
+- Radix UI：無障礙設計的 UI 元件庫
+- Tailwind CSS：高效的 CSS 框架
+- Chart.js：靈活的圖表繪製工具
+
+### AI 整合
+
+- GPT 模型整合：強大的自然語言處理能力
+- 智能分析引擎：數據分析和預測模型
+- 即時圖表生成：自動將分析結果視覺化
+
+### 資料視覺化
+
+- 多種圖表類型：折線圖、柱狀圖、圓餅圖、雷達圖等
+- 雙重圖表顯示：
+  - 對話內嵌小型圖表
+  - 左側固定大型圖表
+- 即時更新：數據變化即時反映在圖表上
+
+## 系統需求
+
+- Node.js 18.0.0 或以上
+- pnpm 8.0.0 或以上
+
+## 安裝與執行
+
+1. 安裝依賴：
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. 啟動開發服務器：
+```bash
+pnpm dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. 訪問系統：
+打開瀏覽器訪問 http://localhost:3000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 版本歷程
 
-## Learn More
+- v1.9：統一所有部門的圖表顯示邏輯
+- v1.8：添加營運趨勢預測和風險評估圖表
+- v1.7：整合財務和法務部門的分析功能
+- v1.6：根據 URL 參數分組顯示智慧場域部門
+- v1.5：完善人資和 IT 部門功能
 
-To learn more about Next.js, take a look at the following resources:
+## 開發團隊
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+本專案由 AI 研發團隊開發維護，採用最新的 AI 技術，為企業提供智能化的管理解決方案。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 授權說明
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+本專案為企業內部使用系統，著作權所有，請勿外流。
