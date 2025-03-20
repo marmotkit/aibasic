@@ -46,21 +46,39 @@ const modules = [
   },
   {
     title: '工業 AI 應用',
-    description: '展示 AI 在製造業的實際應用，包括品質檢測、預測性維護和生產排程',
+    description: '智能品質檢測、預測性維護、生產排程優化',
     href: '/modules/industry',
     color: 'bg-orange-500',
   },
   {
     title: '智能客服中心',
-    description: '訂單查詢、產品支援、學習中心',
+    description: '訂單查詢、產品支援、學習資源',
     href: '/modules/customer-service',
     color: 'bg-teal-500',
+  },
+  {
+    title: '智慧場域 AI (人資/IT)',
+    description: '人力資源分析、人才招募配對、IT 智能開發',
+    href: '/modules/smart-workplace?dept=hr-it',
+    color: 'bg-cyan-500',
+  },
+  {
+    title: '智慧場域 AI (財務/法務)',
+    description: '財務分析、稅務規劃、合約審查、法規遵循',
+    href: '/modules/smart-workplace?dept=finance-legal',
+    color: 'bg-emerald-500',
+  },
+  {
+    title: '智慧場域 AI (總經理室)',
+    description: '營運數據儀表板、績效分析、風險監控',
+    href: '/modules/smart-workplace?dept=executive',
+    color: 'bg-violet-500',
   }
 ];
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen p-8 bg-gray-900">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-8 text-white">AI 技術演進學習之旅</h1>
         <p className="text-xl text-center mb-12 text-gray-300">
@@ -72,10 +90,12 @@ export default function Home() {
             <Link 
               key={module.href}
               href={module.href}
-              className={`${module.color} hover:opacity-90 transition-opacity p-6 rounded-lg shadow-lg`}
+              className="block no-underline"
             >
-              <h2 className="text-2xl font-bold text-white mb-2">{module.title}</h2>
-              <p className="text-white/90">{module.description}</p>
+              <div className={`${module.color} hover:opacity-90 transition-all transform hover:scale-105 p-6 rounded-lg shadow-lg h-full`}>
+                <h2 className="text-2xl font-bold text-white mb-2">{module.title}</h2>
+                <p className="text-white/90">{module.description}</p>
+              </div>
             </Link>
           ))}
         </div>
