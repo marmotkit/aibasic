@@ -1,5 +1,19 @@
 import { NextResponse } from 'next/server';
 
+interface ChartData {
+  type: 'line' | 'bar' | 'pie';
+  data: {
+    labels: string[];
+    datasets: Array<{
+      label: string;
+      data: number[];
+      backgroundColor?: string[];
+      borderColor?: string;
+      fill?: boolean;
+    }>;
+  };
+}
+
 // 模擬 HR 數據
 const hrData = {
   turnoverRisk: {
@@ -121,6 +135,109 @@ const executiveData = {
     { type: '財務風險', level: '低', description: '現金流充足' }
   ]
 };
+
+// 生成營收趨勢圖表數據
+function generateRevenueChart(): ChartData {
+  return {
+    type: 'line',
+    data: {
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+      datasets: [{
+        label: '營收（百萬）',
+        data: [125000000, 130000000, 142000000, 150000000].map(v => v / 1000000),
+        borderColor: '#4CAF50',
+        fill: false
+      }]
+    }
+  };
+}
+
+// 生成部門績效圖表數據
+function generateDepartmentChart(): ChartData {
+  const departments = Object.keys(executiveData.departmentPerformance);
+  const scores = departments.map(dept => executiveData.departmentPerformance[dept as keyof typeof executiveData.departmentPerformance].achievement);
+  
+  return {
+    type: 'bar',
+    data: {
+      labels: departments,
+      datasets: [{
+        label: '部門績效',
+        data: scores,
+        backgroundColor: ['#2196F3', '#4CAF50', '#FFC107', '#F44336']
+      }]
+    }
+  };
+}
+
+// 生成滿意度比較圖表數據
+function generateSatisfactionChart(): ChartData {
+  return {
+    type: 'line',
+    data: {
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+      datasets: [
+        {
+          label: '客戶滿意度',
+          data: [4.0, 4.2, 4.3, 4.5],
+          borderColor: '#2196F3',
+          fill: false
+        },
+        {
+          label: '員工滿意度',
+          data: [4.0, 4.1, 4.1, 4.2],
+          borderColor: '#4CAF50',
+          fill: false
+        }
+      ]
+    }
+  };
+}
+
+// 生成營運趨勢預測圖表
+function generateTrendForecastChart(): ChartData {
+  return {
+    type: 'line',
+    data: {
+      labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q1預測', 'Q2預測'],
+      datasets: [
+        {
+          label: '營收趨勢（百萬）',
+          data: [125, 130, 142, 150, 158, 165],
+          borderColor: '#4CAF50',
+          fill: false
+        },
+        {
+          label: '利潤趨勢（百萬）',
+          data: [25, 27, 28, 30, 32, 34],
+          borderColor: '#2196F3',
+          fill: false
+        }
+      ]
+    }
+  };
+}
+
+// 生成風險評估圖表
+function generateRiskAssessmentChart(): ChartData {
+  return {
+    type: 'bar',
+    data: {
+      labels: ['市場風險', '營運風險', '財務風險', '法規風險', '技術風險'],
+      datasets: [{
+        label: '風險指數',
+        data: [75, 45, 30, 55, 60],
+        backgroundColor: [
+          '#FF5252', // 高風險 - 紅色
+          '#FFC107', // 中風險 - 黃色
+          '#4CAF50', // 低風險 - 綠色
+          '#FF9800', // 中高風險 - 橙色
+          '#FF7043'  // 中高風險 - 橙紅色
+        ]
+      }]
+    }
+  };
+}
 
 function generateChartData(data: any, type: string) {
   // 根據不同類型生成對應的圖表數據
@@ -328,18 +445,7 @@ function formatExecutiveResponse(message: string, data: any) {
 員工滿意度：${kpi.employeeSatisfaction.value} (${kpi.employeeSatisfaction.trend})`,
       type: 'chart',
       metadata: {
-        chartData: {
-          labels: ['營收', '利潤', '客戶滿意度', '員工滿意度'],
-          datasets: [{
-            label: '關鍵指標',
-            data: [
-              kpi.revenue.value,
-              kpi.profit.value,
-              kpi.customerSatisfaction.value,
-              kpi.employeeSatisfaction.value
-            ]
-          }]
-        }
+        chartData: generateRevenueChart()
       }
     };
   }
@@ -351,9 +457,86 @@ function formatExecutiveResponse(message: string, data: any) {
 ${Object.entries(performance)
   .map(([dept, data]) => `${dept}部門：達成率 ${(data as any).achievement}%，狀態：${(data as any).status}`)
   .join('\n')}`,
-      type: 'table',
+      type: 'chart',
       metadata: {
-        tableData: performance
+        chartData: generateDepartmentChart()
+      }
+    };
+  }
+
+  if (message.includes('滿意度')) {
+    return {
+      message: `滿意度分析報告：\n客戶滿意度：${data.kpi.customerSatisfaction.value}，較上季提升 ${data.kpi.customerSatisfaction.trend}\n員工滿意度：${data.kpi.employeeSatisfaction.value}，較上季提升 ${data.kpi.employeeSatisfaction.trend}\n\n建議行動方案：\n1. 持續優化客戶服務流程\n2. 加強內部溝通和員工關懷`,
+      type: 'chart',
+      metadata: {
+        chartData: generateSatisfactionChart()
+      }
+    };
+  }
+
+  if (message.includes('趨勢')) {
+    return {
+      message: `下季度營運趨勢預測：\n
+1. 營收預測：
+   - Q1：預計達到 1.58 億（+5.3%）
+   - Q2：預計達到 1.65 億（+4.4%）
+
+2. 利潤預測：
+   - Q1：預計達到 3,200 萬（+6.7%）
+   - Q2：預計達到 3,400 萬（+6.3%）
+
+3. 增長動力：
+   - 新產品線預計貢獻 15% 營收
+   - 海外市場擴展計畫進展順利
+   - 數位轉型專案效益開始顯現
+
+4. 潛在挑戰：
+   - 原物料成本可能上漲
+   - 新競爭者進入市場
+   - 匯率波動風險增加`,
+      type: 'chart',
+      metadata: {
+        chartData: generateTrendForecastChart()
+      }
+    };
+  }
+
+  if (message.includes('風險')) {
+    return {
+      message: `目前主要營運風險評估：\n
+1. 市場風險 (75分)：
+   - 新競爭者進入市場
+   - 產品價格競爭加劇
+   - 市場需求變動
+
+2. 技術風險 (60分)：
+   - 技術更新速度加快
+   - 資安威脅增加
+   - 人才競爭激烈
+
+3. 法規風險 (55分)：
+   - 新法規實施
+   - 合規成本增加
+   - 跨國法規差異
+
+4. 營運風險 (45分)：
+   - 供應鏈穩定性
+   - 品質管控
+   - 庫存管理
+
+5. 財務風險 (30分)：
+   - 應收帳款管理
+   - 現金流狀況
+   - 匯率波動
+
+風險應對策略：
+1. 加強市場情報收集與分析
+2. 提升技術研發投資
+3. 優化供應鏈管理
+4. 強化內部控制機制`,
+      type: 'chart',
+      metadata: {
+        chartData: generateRiskAssessmentChart()
       }
     };
   }
@@ -367,6 +550,97 @@ ${Object.entries(performance)
 export async function POST(request: Request) {
   try {
     const { message, department } = await request.json();
+
+    if (department === 'executive') {
+      if (message.includes('營收') || message.includes('銷售')) {
+        return NextResponse.json({
+          message: `本週關鍵營運指標：\n營收：150,000,000 (+12%)\n利潤：30,000,000 (+8%)\n客戶滿意度：4.5 (+0.3)\n員工滿意度：4.2 (+0.1)`,
+          type: 'chart',
+          metadata: {
+            chartData: generateRevenueChart()
+          }
+        });
+      } else if (message.includes('部門') || message.includes('績效')) {
+        return NextResponse.json({
+          message: `部門績效分析：\nsales部門：達成率 95%，狀態：達標\nengineering部門：達成率 88%，狀態：良好\nmarketing部門：達成率 92%，狀態：優秀\nservice部門：達成率 85%，狀態：待改進`,
+          type: 'chart',
+          metadata: {
+            chartData: generateDepartmentChart()
+          }
+        });
+      } else if (message.includes('滿意度')) {
+        return NextResponse.json({
+          message: `滿意度分析報告：\n客戶滿意度：4.5，較上季提升 0.3\n員工滿意度：4.2，較上季提升 0.1\n\n建議行動方案：\n1. 持續優化客戶服務流程\n2. 加強內部溝通和員工關懷`,
+          type: 'chart',
+          metadata: {
+            chartData: generateSatisfactionChart()
+          }
+        });
+      } else if (message.includes('趨勢')) {
+        return NextResponse.json({
+          message: `下季度營運趨勢預測：\n
+1. 營收預測：
+   - Q1：預計達到 1.58 億（+5.3%）
+   - Q2：預計達到 1.65 億（+4.4%）
+
+2. 利潤預測：
+   - Q1：預計達到 3,200 萬（+6.7%）
+   - Q2：預計達到 3,400 萬（+6.3%）
+
+3. 增長動力：
+   - 新產品線預計貢獻 15% 營收
+   - 海外市場擴展計畫進展順利
+   - 數位轉型專案效益開始顯現
+
+4. 潛在挑戰：
+   - 原物料成本可能上漲
+   - 新競爭者進入市場
+   - 匯率波動風險增加`,
+          type: 'chart',
+          metadata: {
+            chartData: generateTrendForecastChart()
+          }
+        });
+      } else if (message.includes('風險')) {
+        return NextResponse.json({
+          message: `目前主要營運風險評估：\n
+1. 市場風險 (75分)：
+   - 新競爭者進入市場
+   - 產品價格競爭加劇
+   - 市場需求變動
+
+2. 技術風險 (60分)：
+   - 技術更新速度加快
+   - 資安威脅增加
+   - 人才競爭激烈
+
+3. 法規風險 (55分)：
+   - 新法規實施
+   - 合規成本增加
+   - 跨國法規差異
+
+4. 營運風險 (45分)：
+   - 供應鏈穩定性
+   - 品質管控
+   - 庫存管理
+
+5. 財務風險 (30分)：
+   - 應收帳款管理
+   - 現金流狀況
+   - 匯率波動
+
+風險應對策略：
+1. 加強市場情報收集與分析
+2. 提升技術研發投資
+3. 優化供應鏈管理
+4. 強化內部控制機制`,
+          type: 'chart',
+          metadata: {
+            chartData: generateRiskAssessmentChart()
+          }
+        });
+      }
+    }
 
     switch (department) {
       case 'hr':

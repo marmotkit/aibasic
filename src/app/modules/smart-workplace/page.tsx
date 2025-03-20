@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Chart from 'chart.js/auto';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -135,9 +136,25 @@ const departmentGroups = {
   'executive': ['executive']
 };
 
+interface ChartData {
+  type: 'line' | 'bar' | 'pie';
+  data: {
+    labels: string[];
+    datasets: Array<{
+      label: string;
+      data: number[];
+      backgroundColor?: string[];
+      borderColor?: string;
+      fill?: boolean;
+    }>;
+  };
+}
+
 export default function SmartWorkplacePage() {
   const searchParams = useSearchParams();
   const deptGroup = searchParams.get('dept') || 'hr-it';
+  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartInstanceRef = useRef<Chart | null>(null);
   
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -162,6 +179,66 @@ export default function SmartWorkplacePage() {
       }]);
     }
   }, [deptGroup, availableDepartments]);
+
+  // 清理舊的圖表
+  const clearChart = () => {
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+      chartInstanceRef.current = null;
+    }
+  };
+
+  // 創建新的圖表
+  const createChart = (chartData: ChartData) => {
+    if (!chartRef.current) return;
+    
+    clearChart();
+    
+    const ctx = chartRef.current.getContext('2d');
+    if (!ctx) return;
+
+    chartInstanceRef.current = new Chart(ctx, {
+      type: chartData.type,
+      data: chartData.data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: 'white'
+            }
+          }
+        },
+        scales: {
+          y: {
+            ticks: {
+              color: 'white'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          },
+          x: {
+            ticks: {
+              color: 'white'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        }
+      }
+    });
+  };
+
+  // 處理圖表數據
+  const handleChartData = (metadata: any) => {
+    if (!metadata?.chartData) return;
+    
+    createChart(metadata.chartData);
+  };
 
   const handleSendMessage = async (text: string = inputText) => {
     if (!text.trim()) return;
@@ -205,6 +282,11 @@ export default function SmartWorkplacePage() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // 如果是總經理室的回應且包含圖表數據，則更新圖表
+      if (selectedDepartment === 'executive' && data.metadata?.chartData) {
+        handleChartData(data.metadata);
+      }
     } catch (error: any) {
       alert(error.message || '發生錯誤，請稍後再試');
     } finally {
@@ -272,6 +354,13 @@ export default function SmartWorkplacePage() {
     module => module.id === selectedDepartment
   );
 
+  // 清理圖表
+  useEffect(() => {
+    return () => {
+      clearChart();
+    };
+  }, []);
+
   return (
     <div className="container mx-auto p-4 min-h-screen bg-gray-900">
       <h1 className="text-3xl font-bold mb-6 text-white">智慧場域 AI 中心</h1>
@@ -319,6 +408,19 @@ export default function SmartWorkplacePage() {
               );
             })}
           </div>
+
+          {/* 圖表區域 - 只在總經理室時顯示 */}
+          {selectedDepartment === 'executive' && (
+            <div className="mt-6">
+              <Card className="bg-gray-800 p-4">
+                <canvas 
+                  ref={chartRef} 
+                  className="w-full"
+                  style={{ height: '300px' }}
+                ></canvas>
+              </Card>
+            </div>
+          )}
         </div>
 
         {/* 右側對話區域 */}
