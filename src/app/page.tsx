@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Card } from '@/components/ui/card';
 
 const modules = [
   {
@@ -49,6 +50,12 @@ const modules = [
     href: '/modules/industry',
     color: 'bg-orange-500',
   },
+  {
+    title: '智能客服中心',
+    description: '訂單查詢、產品支援、學習中心',
+    href: '/modules/customer-service',
+    color: 'bg-teal-500',
+  }
 ];
 
 export default function Home() {
