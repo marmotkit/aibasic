@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import { QualityChart, MaintenanceChart, SchedulingChart } from '@/components/charts/IndustryCharts';
 
 const demoTypes = {
   quality: {
@@ -50,7 +51,7 @@ const demoTypes = {
 };
 
 type DemoType = keyof typeof demoTypes;
-type Message = { role: string; content: string };
+type Message = { role: string; content: string; chartData?: any };
 type MessagesState = Record<DemoType, Message[]>;
 
 export default function IndustryPage() {
@@ -109,8 +110,15 @@ export default function IndustryPage() {
         ...prev,
         [selectedDemo]: [
           ...prev[selectedDemo],
-          { role: 'user', content: text },
-          { role: 'assistant', content: data.message }
+          { 
+            role: 'user', 
+            content: text 
+          },
+          { 
+            role: 'assistant', 
+            content: data.message,
+            chartData: data.chartData
+          }
         ]
       }));
       setText('');
@@ -119,6 +127,21 @@ export default function IndustryPage() {
       alert(error.message || '發生錯誤，請稍後再試');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const renderChart = (message: Message) => {
+    if (!message.chartData) return null;
+
+    switch (selectedDemo) {
+      case 'quality':
+        return <QualityChart data={message.chartData} />;
+      case 'maintenance':
+        return <MaintenanceChart data={message.chartData} />;
+      case 'scheduling':
+        return <SchedulingChart data={message.chartData} />;
+      default:
+        return null;
     }
   };
 
@@ -189,18 +212,22 @@ export default function IndustryPage() {
       {/* 當前類型的對話記錄 */}
       <div className="space-y-4">
         {messagesHistory[selectedDemo].map((message, index) => (
-          <div
-            key={index}
-            className={`p-4 rounded-lg ${
+          <div key={index}>
+            <div className={`p-4 rounded-lg ${
               message.role === 'user' 
                 ? 'bg-blue-900 text-white ml-auto max-w-[80%]' 
                 : 'bg-gray-800 text-white max-w-[80%]'
-            }`}
-          >
-            <p className="text-sm font-semibold mb-1 text-gray-300">
-              {message.role === 'user' ? '您的輸入' : 'AI 分析結果'}
-            </p>
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            }`}>
+              <p className="text-sm font-semibold mb-1 text-gray-300">
+                {message.role === 'user' ? '您的輸入' : 'AI 分析結果'}
+              </p>
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            </div>
+            {message.role === 'assistant' && message.chartData && (
+              <div className="mt-4">
+                {renderChart(message)}
+              </div>
+            )}
           </div>
         ))}
       </div>

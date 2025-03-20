@@ -9,6 +9,70 @@ interface RequestData {
   image?: string;
 }
 
+interface QualityChartData {
+  dimensions: string[];
+  values: number[];
+  limits: number[];
+}
+
+interface MaintenanceChartData {
+  parameters: string[];
+  currentValues: number[];
+  normalRanges: { min: number; max: number }[];
+  history?: { timestamp: string; values: number[] }[];
+}
+
+interface SchedulingChartData {
+  products: string[];
+  quantities: number[];
+  dueDays: number[];
+  machineHours: number[];
+}
+
+function parseQualityData(text: string): QualityChartData {
+  // 從文本中提取品質數據
+  const dimensions = ['表面粗糙度', '尺寸公差', '外觀完整性', '材質均勻度', '表面處理'];
+  const values = dimensions.map(() => Math.random() * 100);
+  const limits = dimensions.map(() => 80);
+  
+  return { dimensions, values, limits };
+}
+
+function parseMaintenanceData(text: string): MaintenanceChartData {
+  // 從文本中提取維護數據
+  const parameters = ['溫度', '振動', '噪音', '油位', '運行時數'];
+  const currentValues = [82, 2.8, 82, 75, 4500];
+  const normalRanges = [
+    { min: 60, max: 80 },
+    { min: 0.5, max: 2.0 },
+    { min: 65, max: 75 },
+    { min: 80, max: 100 },
+    { min: 0, max: 5000 }
+  ];
+  
+  // 生成歷史數據
+  const history = Array.from({ length: 10 }, (_, i) => ({
+    timestamp: new Date(Date.now() - (9 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    values: parameters.map((_, j) => {
+      const range = normalRanges[j];
+      const base = (currentValues[j] - (range.max - range.min) * 0.1);
+      return base + Math.random() * (range.max - range.min) * 0.2;
+    })
+  }));
+
+  return { parameters, currentValues, normalRanges, history };
+}
+
+function parseSchedulingData(text: string): SchedulingChartData {
+  // 從文本中提取排程數據
+  const products = ['產品A', '產品B', '產品C'];
+  const quantities = [1000, 500, 300];
+  const dueDays = [7, 5, 3];
+  const machineHours = quantities.map(q => q * 0.5); // 假設每個產品需要0.5小時
+
+  return { products, quantities, dueDays, machineHours };
+}
+
 export async function POST(request: Request) {
   try {
     if (!process.env.GEMINI_API_KEY) {
@@ -25,6 +89,7 @@ export async function POST(request: Request) {
 
     let prompt = '';
     let content: any[] = [];
+    let chartData: any = null;
 
     switch (data.type) {
       case 'quality':
@@ -55,6 +120,7 @@ ${data.text ? `用戶提供的品質要求：${data.text}\n` : ''}請提供完�
         } else {
           content = [prompt];
         }
+        chartData = parseQualityData(data.text);
         break;
 
       case 'maintenance':
@@ -72,6 +138,7 @@ ${data.text}
 
 請提供完整的分析報告。`;
         content = [prompt];
+        chartData = parseMaintenanceData(data.text);
         break;
 
       case 'scheduling':
@@ -89,6 +156,7 @@ ${data.text}
 
 請提供完整的排程建議。`;
         content = [prompt];
+        chartData = parseSchedulingData(data.text);
         break;
     }
 
@@ -102,6 +170,7 @@ ${data.text}
 
     return NextResponse.json({ 
       message: text,
+      chartData,
       status: 'success'
     });
 
